@@ -1,5 +1,6 @@
 import { Telegraf } from 'telegraf';
 import { prisma } from '../lib/prisma';
+import { config } from '../config';
 import { handleUpdate, handleCallbackQuery } from './webhookHandler';
 
 /** Хранилище экземпляров Telegraf по botId */
@@ -51,6 +52,16 @@ export const botManager = {
 
     for (const dbBot of activeBots) {
       this.getOrCreate(dbBot.id, dbBot.token);
+
+      const webhookUrl = `${config.baseUrl}/api/webhook/${dbBot.id}`;
+      try {
+        const telegraf = new Telegraf(dbBot.token);
+        await telegraf.telegram.setWebhook(webhookUrl, {
+          secret_token: dbBot.webhookSecret,
+        });
+      } catch (error) {
+        console.error(`Failed to set webhook for bot ${dbBot.id}:`, error);
+      }
     }
 
     console.log(`Loaded ${activeBots.length} active bots`);
