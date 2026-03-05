@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "AnswerType" ADD VALUE 'MULTI_CHOICE';

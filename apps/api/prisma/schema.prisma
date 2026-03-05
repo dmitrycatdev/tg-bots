@@ -1,0 +1,116 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  bots Bot[]
+
+  @@map("users")
+}
+
+model Bot {
+  id               String   @id @default(uuid())
+  userId           String   @map("user_id")
+  name             String
+  token            String
+  telegramBotId    String   @map("telegram_bot_id")
+  telegramUsername String   @map("telegram_username")
+  webhookSecret    String   @map("webhook_secret")
+  isActive         Boolean  @default(true) @map("is_active")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  blocks      Block[]
+  respondents Respondent[]
+
+  @@map("bots")
+}
+
+enum BlockType {
+  START
+  QUESTION
+  MESSAGE
+  FINISH
+}
+
+enum AnswerType {
+  TEXT
+  SINGLE_CHOICE
+  MULTI_CHOICE
+  RATING
+}
+
+enum RespondentStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+model Block {
+  id         String      @id @default(uuid())
+  botId      String      @map("bot_id")
+  type       BlockType
+  sortOrder  Int         @map("sort_order")
+  text       String
+  mediaUrl   String?     @map("media_url")
+  answerType AnswerType? @map("answer_type")
+  options    Json?
+  buttonText String?     @map("button_text")
+  isRequired Boolean     @default(true) @map("is_required")
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @updatedAt @map("updated_at")
+
+  bot         Bot          @relation(fields: [botId], references: [id], onDelete: Cascade)
+  answers     Answer[]
+  respondents Respondent[] @relation("CurrentBlock")
+
+  @@index([botId, sortOrder])
+  @@map("blocks")
+}
+
+model Respondent {
+  id             String           @id @default(uuid())
+  botId          String           @map("bot_id")
+  chatId         BigInt           @map("chat_id")
+  username       String?
+  firstName      String?          @map("first_name")
+  lastName       String?          @map("last_name")
+  currentBlockId String?          @map("current_block_id")
+  status         RespondentStatus @default(NOT_STARTED)
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+
+  bot          Bot      @relation(fields: [botId], references: [id], onDelete: Cascade)
+  currentBlock Block?   @relation("CurrentBlock", fields: [currentBlockId], references: [id])
+  answers      Answer[]
+
+  @@unique([botId, chatId])
+  @@index([botId, chatId])
+  @@map("respondents")
+}
+
+model Answer {
+  id           String   @id @default(uuid())
+  respondentId String   @map("respondent_id")
+  blockId      String   @map("block_id")
+  value        String
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  respondent Respondent @relation(fields: [respondentId], references: [id], onDelete: Cascade)
+  block      Block      @relation(fields: [blockId], references: [id], onDelete: Cascade)
+
+  @@index([respondentId, blockId])
+  @@map("answers")
+}

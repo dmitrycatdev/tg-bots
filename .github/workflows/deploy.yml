@@ -1,0 +1,47 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to production
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script_stop: true
+          script: |
+            cd /opt/tg-bots
+
+            echo "=== Pulling latest changes ==="
+            git pull origin main
+
+            echo "=== Building containers ==="
+            docker compose -f docker/docker-compose.prod.yml build
+
+            echo "=== Starting database ==="
+            docker compose -f docker/docker-compose.prod.yml up -d postgres redis
+
+            echo "=== Waiting for database ==="
+            until docker compose -f docker/docker-compose.prod.yml exec -T postgres pg_isready -U postgres > /dev/null 2>&1; do
+              sleep 2
+            done
+
+            echo "=== Running migrations ==="
+            docker compose -f docker/docker-compose.prod.yml run --rm api npx prisma migrate deploy
+
+            echo "=== Starting all services ==="
+            docker compose -f docker/docker-compose.prod.yml up -d
+
+            echo "=== Cleanup ==="
+            docker image prune -f
+
+            echo "=== Status ==="
+            docker compose -f docker/docker-compose.prod.yml ps
