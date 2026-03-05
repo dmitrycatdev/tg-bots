@@ -1,0 +1,13 @@
+node_modules
+dist
+.turbo
+*.tsbuildinfo
+
+.git
+.gitignore
+.github
+.env
+.env.*
+
+scripts
+*.md

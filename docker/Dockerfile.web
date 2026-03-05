@@ -12,9 +12,9 @@ COPY packages/shared/ ./packages/shared/
 COPY tsconfig.base.json ./
 RUN yarn workspace @tg-bots/shared build
 
-# Build Web (vite build only, type checking is done separately in CI)
+# Build Web
 COPY apps/web/ ./apps/web/
-RUN cd apps/web && npx vite build
+RUN yarn workspace @tg-bots/web build
 
 # Serve with nginx
 FROM nginx:alpine AS production
