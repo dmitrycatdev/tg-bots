@@ -16,10 +16,26 @@ function escapeHtml(value: string) {
     .replaceAll('>', '&gt;');
 }
 
-function toTelegramHtml(value: string) {
-  const looksLikeHtml = /<\/?[a-z][\s\S]*>/i.test(value);
-  if (looksLikeHtml) return value;
-  return escapeHtml(value).replace(/\n/g, '<br>');
+const TELEGRAM_ALLOWED_TAGS = new Set([
+  'b', 'strong', 'i', 'em', 'u', 'ins', 's', 'strike', 'del',
+  'a', 'code', 'pre', 'tg-spoiler',
+]);
+
+function toTelegramHtml(value: string): string {
+  if (!/<\/?[a-z][\s\S]*>/i.test(value)) {
+    return escapeHtml(value);
+  }
+
+  let result = value;
+  result = result.replace(/<br\s*\/?>/gi, '\n');
+  result = result.replace(/<\/p>\s*<p[^>]*>/gi, '\n\n');
+  result = result.replace(/<\/?p[^>]*>/gi, '');
+
+  result = result.replace(/<\/?([a-z][a-z0-9-]*)[^>]*>/gi, (match, tag) => {
+    return TELEGRAM_ALLOWED_TAGS.has(tag.toLowerCase()) ? match : '';
+  });
+
+  return result.trim();
 }
 
 /**
