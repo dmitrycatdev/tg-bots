@@ -35,11 +35,7 @@ export const botManager = {
    * Удалить экземпляр Telegraf
    */
   remove(botId: string) {
-    const bot = bots.get(botId);
-    if (bot) {
-      bot.stop();
-      bots.delete(botId);
-    }
+    bots.delete(botId);
   },
 
   /**
