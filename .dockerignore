@@ -1,7 +1,7 @@
-node_modules
-dist
-.turbo
-*.tsbuildinfo
+**/node_modules
+**/dist
+**/.turbo
+**/*.tsbuildinfo
 
 .git
 .gitignore

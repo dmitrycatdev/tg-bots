@@ -10,11 +10,12 @@ RUN yarn install --frozen-lockfile --production=false
 # Build shared package
 COPY packages/shared/ ./packages/shared/
 COPY tsconfig.base.json ./
-RUN yarn workspace @tg-bots/shared build
+RUN yarn workspace @tg-bots/shared build && \
+    test -f packages/shared/dist/index.d.ts || (echo "FATAL: shared declarations not generated" && exit 1)
 
 # Build Web
 COPY apps/web/ ./apps/web/
-RUN yarn workspace @tg-bots/web build
+RUN cd apps/web && npx vite build
 
 # Serve with nginx
 FROM nginx:alpine AS production
