@@ -30,7 +30,7 @@ RUN yarn install --frozen-lockfile --production=true
 COPY --from=base /app/packages/shared/dist/ ./packages/shared/dist/
 COPY --from=base /app/apps/api/dist/ ./apps/api/dist/
 COPY --from=base /app/apps/api/prisma/ ./apps/api/prisma/
-COPY --from=base /app/apps/api/node_modules/.prisma/ ./apps/api/node_modules/.prisma/
+COPY --from=base /app/node_modules/.prisma/ ./node_modules/.prisma/
 
 WORKDIR /app/apps/api
 EXPOSE 4000
