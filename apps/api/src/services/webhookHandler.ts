@@ -458,7 +458,7 @@ async function handleRatingCallback(botId: string, ctx: Context, chatId: number,
   });
 
   await ctx.editMessageText(
-    `${toTelegramHtml(currentBlock.text)}<br><br>${escapeHtml(`Ваша оценка: ${ratingValue} ✓`)}`,
+    [toTelegramHtml(currentBlock.text), escapeHtml(`Ваша оценка: ${ratingValue} ✓`)].join(String.fromCharCode(10, 10)),
     { parse_mode: 'HTML' },
   );
   await ctx.answerCbQuery();
@@ -514,7 +514,7 @@ async function handleMultiChoiceCallback(botId: string, ctx: Context, chatId: nu
       ? `Выбрано: ${selected.join(', ')} ✓`
       : 'Ничего не выбрано';
     await ctx.editMessageText(
-      `${toTelegramHtml(currentBlock.text)}<br><br>${escapeHtml(summary)}`,
+      [toTelegramHtml(currentBlock.text), escapeHtml(summary)].join(String.fromCharCode(10, 10)),
       { parse_mode: 'HTML' },
     );
     await ctx.answerCbQuery();
